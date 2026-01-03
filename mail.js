@@ -1,6 +1,6 @@
 // Inizializza EmailJS
 (function () {
-  emailjs.init("LA_TUA_PUBLIC_KEY"); // la public key che hai trovato
+  emailjs.init("im5LCAbBSEgq3Lh3-"); // la public key che hai trovato
 })();
 
 // Associa l’evento submit
@@ -9,8 +9,8 @@ globalThis.addEventListener("DOMContentLoaded", function () {
   form.addEventListener("submit", function (event) {
     event.preventDefault(); // ferma il refresh
     emailjs.sendForm(
-      "TUO_SERVICE_ID",
-      "TUO_TEMPLATE_ID",
+      "service_kkcputc",
+      "template_ddw3qce",
       form
     )
     .then(() => {
