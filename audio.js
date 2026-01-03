@@ -101,9 +101,11 @@ volumeControl.addEventListener("input", () => {
 });
 
 // ⚙️ apri/chiudi box volume
-settingsBtn.addEventListener("click", () => {
-  volumeBox.classList.toggle("active");
-});
+settingsBtn.addEventListener('click', ()=>{
+    volumeBox.classList.toggle('active');
+    settingsBtn.classList.add('spin');
+    setTimeout(()=>settingsBtn.classList.remove('spin'),600);
+  });
 
 // ▶️ avvio sicuro dopo interazione utente
 function startMusic() {
