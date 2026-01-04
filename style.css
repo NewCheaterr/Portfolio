@@ -575,13 +575,6 @@ body.light-mode .contact-form textarea {
 .status-dnd::before     { border-color: #f04747 transparent transparent transparent; }
 .status-offline::before { border-color: #747f8d transparent transparent transparent; }
 
-/* Mostra tooltip all'hover */
-.status-dot:hover::after,
-.status-dot:hover::before {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
 /* Footer */
 .site-footer {
   text-align: center;
