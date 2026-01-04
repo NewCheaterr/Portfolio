@@ -1,36 +1,46 @@
 const DISCORD_ID = "1109500213195968632";
 
-async function updateDiscordStatus() {
-  try {
-    const res = await fetch(
-      `https://api.lanyard.rest/v1/users/${DISCORD_ID}`
-    );
-    const data = await res.json();
+document.addEventListener("DOMContentLoaded", () => {
+  const dot = document.getElementById("discord-status");
 
-    const status = data.data.discord_status;
-    const dot = document.getElementById("status-dot");
-
-    switch (status) {
-      case "online":
-        dot.style.backgroundColor = "green";
-        break;
-      case "idle":
-        dot.style.backgroundColor = "yellow";
-        break;
-      case "dnd":
-        dot.style.backgroundColor = "red";
-        break;
-      case "offline":
-      default:
-        dot.style.backgroundColor = "gray";
-    }
-  } catch (e) {
-    console.error("Errore Discord:", e);
+  if (!dot) {
+    console.error("Elemento #discord-status non trovato");
+    return;
   }
-}
 
-// aggiorna subito
-updateDiscordStatus();
+  async function updateDiscordStatus() {
+    try {
+      const res = await fetch(
+        `https://api.lanyard.rest/v1/users/${DISCORD_ID}`
+      );
+      const json = await res.json();
+      const status = json.data.discord_status;
 
-// aggiorna ogni 15 secondi
-setInterval(updateDiscordStatus, 15000);
+      dot.classList.remove(
+        "status-online",
+        "status-idle",
+        "status-dnd",
+        "status-offline"
+      );
+
+      switch (status) {
+        case "online":
+          dot.classList.add("status-online");
+          break;
+        case "idle":
+          dot.classList.add("status-idle");
+          break;
+        case "dnd":
+          dot.classList.add("status-dnd");
+          break;
+        default:
+          dot.classList.add("status-offline");
+      }
+    } catch (err) {
+      console.error("Errore Discord:", err);
+    }
+  }
+
+  updateDiscordStatus();
+  setInterval(updateDiscordStatus, 15000);
+});
