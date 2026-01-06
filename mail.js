@@ -14,7 +14,7 @@ globalThis.addEventListener("DOMContentLoaded", function () {
       form
     )
     .then(() => {
-      alert("Messaggio inviato!");
+      console.log("Messaggio inviato!");
       form.reset(); // pulisce i campi
     })
     .catch((error) => {
