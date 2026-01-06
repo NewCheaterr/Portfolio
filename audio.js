@@ -1,73 +1,3 @@
-/*const music = document.getElementById('bg-music');
-const toggle = document.getElementById('music-toggle');
-const settingsBtn = document.getElementById('settings-btn');
-const volumeBox = document.getElementById('volume-box');
-const volumeControl = document.getElementById('volume-control');
-
-let playing = false;
-let currentTrack = 0;
-
-function getTrackName(path){
-    return path.split('/').pop().replace(/\.[^/.]+$/, "");
-}
-
-  function showToast(msg){
-    let toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = msg;
-    document.body.appendChild(toast);
-    setTimeout(()=>toast.classList.add('show'),50);
-    setTimeout(()=>{
-      toast.classList.remove('show');
-      setTimeout(()=>toast.remove(),300);
-    },3000);
-  }
-
-  function playTrack(index){
-    if(playlist.length === 0) return;
-    currentTrack = index % playlist.length;
-    music.src = playlist[currentTrack];
-    music.muted = false;
-    music.volume = Number.parseFloat(volumeControl.value) || 0.1;
-    music.play().then(()=>{
-      toggle.textContent = '🔊';
-      toggle.classList.add('pulse');
-      showToast(":notes: Ora in riproduzione: " + getTrackName(playlist[currentTrack]));
-      playing = true;
-    }).catch(err=>{
-      console.log("Autoplay bloccato:", err);
-      toggle.textContent = '🔇';
-    });
-  }
-
-  music.addEventListener('ended', ()=> playTrack(currentTrack + 1));
-
-  toggle.addEventListener('click', ()=>{
-    if(playing){
-      music.pause();
-      toggle.textContent = '🔇';
-      toggle.classList.remove('pulse');
-      playing = false;
-    } else {
-      music.play().catch(()=>{});
-      toggle.textContent = '🔊';
-      toggle.classList.add('pulse');
-      playing = true;
-    }
-  });
-
-  settingsBtn.addEventListener('click', ()=>{
-    volumeBox.classList.toggle('active');
-    settingsBtn.classList.add('spin');
-    setTimeout(()=>settingsBtn.classList.remove('spin'),600);
-  });
-
-  volumeControl.addEventListener('input', () => {
-  music.volume = Number.parseFloat(volumeControl.value);
-});
-*/
-
-
 const music = new Audio();
 let currentTrack = 0;
 let playing = false;
@@ -78,40 +8,84 @@ const settingsBtn = document.getElementById("settings-btn");
 const volumeBox = document.getElementById("volume-box");
 const volumeControl = document.getElementById("volume");
 
-// playlist.js DEVE essere caricato prima
-music.src = playlist[currentTrack];
-music.loop = true;
-music.volume = Number.parseFloat(volumeControl.value) || 0.1;
+// Assicuriamoci che `playlist` sia definita (caricata da playlist.js prima di questo file)
+if (Array.isArray(playlist) && playlist.length > 0) {
+  music.src = playlist[currentTrack];
+} else {
+  music.src = "";
+}
+if (volumeControl) music.volume = Number.parseFloat(volumeControl.value) || 0.1;
+
+// Mostra toast
+function showToast(msg){
+  let toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(()=>toast.classList.add('show'),50);
+  setTimeout(()=>{
+    toast.classList.remove('show');
+    setTimeout(()=>toast.remove(),300);
+  },3000);
+}
+
+// Play specific track by index (gestisce wrap-around)
+function playTrack(index){
+  if (!Array.isArray(playlist) || playlist.length === 0) return;
+  currentTrack = ((index % playlist.length) + playlist.length) % playlist.length;
+  music.src = playlist[currentTrack];
+  music.currentTime = 0;
+  music.play().then(()=>{
+    playing = true;
+    toggle.textContent = "🔊";
+    toggle.classList.add('pulse');
+    showToast("🎵 Ora in riproduzione: " + playlist[currentTrack].split('/').pop().replace(/\.[^/.]+$/, ""));
+  }).catch(err=>{
+    console.log('Playback error:', err);
+    toggle.textContent = '🔇';
+  });
+}
 
 // ▶️ play / pause
 toggle.addEventListener("click", () => {
   if (playing) {
     music.pause();
     toggle.textContent = "🔇";
+    toggle.classList.remove('pulse');
+    playing = false;
   } else {
-    music.play();
-    toggle.textContent = "🔊";
+    // se non stiamo già riproducendo, assicurati che la traccia corrente sia impostata
+    if (!music.src) music.src = playlist[currentTrack] || "";
+    music.play().then(()=>{
+      playing = true;
+      toggle.textContent = "🔊";
+      toggle.classList.add('pulse');
+    }).catch(()=>{
+      toggle.textContent = '🔇';
+    });
   }
-  playing = !playing;
 });
 
 // 🎚 volume
-volumeControl.addEventListener("input", () => {
-  music.volume = Number.parseFloat(volumeControl.value);
-});
+if (volumeControl) {
+  volumeControl.addEventListener("input", () => {
+    music.volume = Number.parseFloat(volumeControl.value);
+  });
+}
 
 // ⚙️ apri/chiudi box volume
 settingsBtn.addEventListener('click', ()=>{
-    volumeBox.classList.toggle('active');
-    settingsBtn.classList.add('spin');
-    setTimeout(()=>settingsBtn.classList.remove('spin'),600);
-  });
+  volumeBox.classList.toggle('active');
+  settingsBtn.classList.add('spin');
+  setTimeout(()=>settingsBtn.classList.remove('spin'),600);
+});
 
-// ▶️ avvio sicuro dopo interazione utente
-function startMusic() {
-  if (!playing) {
-    music.play();
-    playing = true;
-    toggle.textContent = "🔊";
+// Quando finisce una traccia, avvia la successiva
+music.addEventListener('ended', ()=> playTrack(currentTrack + 1));
+
+  // Avvia la musica al primo gesto dell'utente (click o tasto) — necessario per le policy autoplay
+  function handleFirstGesture(){
+    if (!playing) playTrack(currentTrack);
   }
-}
+  globalThis.addEventListener('click', handleFirstGesture, { once: true });
+  globalThis.addEventListener('keydown', handleFirstGesture, { once: true });
